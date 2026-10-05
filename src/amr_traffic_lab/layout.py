@@ -9,7 +9,7 @@ A map is a rectangle of characters, one per grid cell:
 Stations and chargers are *endpoints*: cells where a robot may rest. The whole
 package applies one transit rule: a robot drives on aisle cells only and enters
 an endpoint only when it is the goal of the current trip. That is the
-"well-formed infrastructure" of Cap et al. (2015) and Ma et al. (2017): any
+"well-formed infrastructure" of Čáp et al. (2015) and Ma et al. (2017): any
 endpoint can be reached from any other without crossing a third one, so a
 resting robot never blocks a route.
 """
@@ -128,7 +128,7 @@ class Layout:
         """Return why this layout cannot host ``n_robots`` (empty list if it can).
 
         Conditions of a well-formed pickup-and-delivery instance (Ma et al.
-        2017, Def. 1) restated for this grid: the aisle cells form one
+        2017) restated for this grid: the aisle cells form one
         connected component, every endpoint touches an aisle cell, and there
         are at least as many parking endpoints (chargers) as robots.
         """

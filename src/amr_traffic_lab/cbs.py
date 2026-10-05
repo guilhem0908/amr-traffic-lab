@@ -166,7 +166,7 @@ def _split(conflict: Conflict):
 
 
 def solve_prioritised(layout: Layout, starts: Sequence[int], goals: Sequence[int]) -> MapfResult:
-    """Prioritised planning (Erdmann and Lozano-Perez 1987; Silver 2005).
+    """Prioritised planning (Erdmann and Lozano-Pérez 1987; Silver 2005).
 
     Agents plan one after the other, in index order, each avoiding the paths
     already written in the reservation table. Fast, but neither complete nor

@@ -1,5 +1,3 @@
-import random
-
 import pytest
 
 from amr_traffic_lab.cbs import (
@@ -13,25 +11,17 @@ from amr_traffic_lab.cbs import (
     sum_of_costs,
 )
 from amr_traffic_lab.exhaustive import optimal_sum_of_costs
+from amr_traffic_lab.experiments import tiny_instance
 from amr_traffic_lab.safety import validate_paths
-from conftest import make_layout, random_open_grid
+from conftest import make_layout
 
 # A five-cell corridor with one passing bay under its middle cell.
 CORRIDOR_WITH_BAY = ".....\n##.##"
 
 
-def random_instance(seed: int):
-    """Two or three agents on a random grid of at most 4 x 4 cells."""
-    rng = random.Random(seed)
-    layout = random_open_grid(rng, rng.randrange(2, 5), rng.randrange(2, 5), wall_share=0.15)
-    cells = list(layout.free)
-    agents = min(rng.randrange(2, 4), len(cells))
-    return layout, rng.sample(cells, agents), rng.sample(cells, agents)
-
-
 def cross_check(seed: int) -> str:
     """Compare CBS with the exhaustive search on one instance; return what happened."""
-    layout, starts, goals = random_instance(seed)
+    layout, starts, goals = tiny_instance(seed)
     optimum = optimal_sum_of_costs(layout, starts, goals)
     result = solve_cbs(layout, starts, goals, node_budget=3000)
     if optimum is None:
@@ -116,7 +106,7 @@ def test_prioritised_planning_fails_where_cbs_succeeds():
 
 @pytest.mark.parametrize("seed", range(80))
 def test_prioritised_plans_are_valid_and_never_cheaper_than_cbs(seed):
-    layout, starts, goals = random_instance(seed)
+    layout, starts, goals = tiny_instance(seed)
     prioritised = solve_prioritised(layout, starts, goals)
     if prioritised.status != SOLVED:
         return
