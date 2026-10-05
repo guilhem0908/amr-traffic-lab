@@ -1,0 +1,158 @@
+{
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i9-14900HX",
+    "logical_cores": 32,
+    "os": "Windows",
+    "python": "3.14.2"
+  },
+  "stages": {
+    "lifelong": {
+      "seconds": 71,
+      "workers": 12
+    },
+    "oneshot": {
+      "seconds": 18,
+      "workers": 12
+    },
+    "crosscheck": {
+      "seconds": 3,
+      "workers": 12
+    },
+    "latency": {
+      "seconds": 156,
+      "workers": 1
+    },
+    "figures": {
+      "seconds": 27,
+      "workers": 8
+    }
+  },
+  "planning_latency": [
+    {
+      "layout": "single_corridor",
+      "robots": 2,
+      "plans": 655,
+      "median_ms": 0.192,
+      "p95_ms": 0.807,
+      "max_ms": 4.11
+    },
+    {
+      "layout": "single_corridor",
+      "robots": 4,
+      "plans": 1159,
+      "median_ms": 0.438,
+      "p95_ms": 3.829,
+      "max_ms": 12.18
+    },
+    {
+      "layout": "single_corridor",
+      "robots": 8,
+      "plans": 1956,
+      "median_ms": 1.264,
+      "p95_ms": 9.089,
+      "max_ms": 20.21
+    },
+    {
+      "layout": "single_corridor",
+      "robots": 12,
+      "plans": 2741,
+      "median_ms": 1.899,
+      "p95_ms": 5.975,
+      "max_ms": 18.28
+    },
+    {
+      "layout": "single_corridor",
+      "robots": 16,
+      "plans": 2791,
+      "median_ms": 2.064,
+      "p95_ms": 12.312,
+      "max_ms": 25.43
+    }
+  ],
+  "oneshot": [
+    {
+      "layout": "open_floor",
+      "agents": 2,
+      "cbs_median_ms": 0.41,
+      "cbs_max_ms": 0.8,
+      "prioritised_median_ms": 0.17
+    },
+    {
+      "layout": "open_floor",
+      "agents": 4,
+      "cbs_median_ms": 0.71,
+      "cbs_max_ms": 2.2,
+      "prioritised_median_ms": 0.38
+    },
+    {
+      "layout": "open_floor",
+      "agents": 6,
+      "cbs_median_ms": 1.83,
+      "cbs_max_ms": 14.7,
+      "prioritised_median_ms": 0.6
+    },
+    {
+      "layout": "open_floor",
+      "agents": 8,
+      "cbs_median_ms": 3.33,
+      "cbs_max_ms": 1638.7,
+      "prioritised_median_ms": 0.81
+    },
+    {
+      "layout": "open_floor",
+      "agents": 10,
+      "cbs_median_ms": 11.33,
+      "cbs_max_ms": 4784.4,
+      "prioritised_median_ms": 1.71
+    },
+    {
+      "layout": "open_floor",
+      "agents": 12,
+      "cbs_median_ms": 19.36,
+      "cbs_max_ms": 4048.3,
+      "prioritised_median_ms": 1.52
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 2,
+      "cbs_median_ms": 0.31,
+      "cbs_max_ms": 10.2,
+      "prioritised_median_ms": 0.19
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 4,
+      "cbs_median_ms": 6.11,
+      "cbs_max_ms": 2592.3,
+      "prioritised_median_ms": 0.62
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 6,
+      "cbs_median_ms": 393.79,
+      "cbs_max_ms": 2324.8,
+      "prioritised_median_ms": 1.16
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 8,
+      "cbs_median_ms": 944.19,
+      "cbs_max_ms": 1624.7,
+      "prioritised_median_ms": 2.38
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 10,
+      "cbs_median_ms": 1163.09,
+      "cbs_max_ms": 1528.9,
+      "prioritised_median_ms": 4.06
+    },
+    {
+      "layout": "narrow_aisles",
+      "agents": 12,
+      "cbs_median_ms": 1363.75,
+      "cbs_max_ms": 1666.3,
+      "prioritised_median_ms": 4.76
+    }
+  ]
+}

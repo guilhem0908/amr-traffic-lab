@@ -1,0 +1,10 @@
+{
+  "instances": 400,
+  "solvable": 336,
+  "cbs_finished": 334,
+  "cbs_equal_to_optimum": 334,
+  "cbs_needed_a_split": 142,
+  "cbs_out_of_budget": 2,
+  "mismatches": 0,
+  "node_budget": 3000
+}

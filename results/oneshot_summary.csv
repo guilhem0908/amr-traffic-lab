@@ -1,0 +1,13 @@
+layout,agents,instances,cbs_solved,prioritised_solved,both_solved,cbs_median_nodes,prioritised_overhead_pct,invalid_plans
+open_floor,2,25,25,25,25,1,0.0,0
+open_floor,4,25,25,25,25,1,0.43,0
+open_floor,6,25,25,25,25,2,0.73,0
+open_floor,8,25,24,25,24,3,2.6,0
+open_floor,10,25,23,25,23,7,6.52,0
+open_floor,12,25,22,25,22,11,5.23,0
+narrow_aisles,2,25,25,25,25,1,0.87,0
+narrow_aisles,4,25,21,25,21,9,9.55,0
+narrow_aisles,6,25,14,23,13,77,8.7,0
+narrow_aisles,8,25,5,17,5,300,3.98,0
+narrow_aisles,10,25,1,5,0,310,,0
+narrow_aisles,12,25,0,3,0,,,0
