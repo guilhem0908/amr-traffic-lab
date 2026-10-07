@@ -1,5 +1,5 @@
 {
-  "description": "How many AMRs can a factory aisle take before it jams? Lifelong multi-robot path finding (space-time A*, reservations, CBS), safety checked on every tick.",
+  "description": "Industry 4.0 smart-factory (Usine 4.0) study: how many AMRs can an aisle take before it jams? Space-time A*, reservations, CBS, safety checked every tick.",
   "topics": [
     "multi-agent-path-finding",
     "mapf",
