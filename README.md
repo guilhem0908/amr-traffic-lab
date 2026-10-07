@@ -1,6 +1,6 @@
 # amr-traffic-lab
 
-**A seeded simulation study of Usine 4.0 intralogistics: how many autonomous mobile robots (AMRs) can a factory aisle take before it jams, with the no-collision invariant checked on every tick.**
+**A seeded simulation study of Industry 4.0 smart-factory (Usine 4.0) intralogistics: how many autonomous mobile robots (AMRs) can a factory aisle take before it jams, with the no-collision invariant checked on every tick.**
 
 [![CI](https://github.com/guilhem0908/amr-traffic-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/guilhem0908/amr-traffic-lab/actions/workflows/ci.yml)
 
@@ -14,12 +14,12 @@
 
 ## Why this exists
 
-During my research internship at AIST in Japan I wrote a single-robot A* planner on an occupancy grid, and I prepared a ROS 2 interface for Kachaka, a mobile robot that docks under a shelf and carries it. One robot on an empty map never meets the first question an Industry 4.0 smart factory asks about a fleet: what happens when a dozen of them share one aisle? This repository is a personal side project in which I add time to that A*, then a reservation table, then Conflict-Based Search, and measure the outcome instead of only animating it. It sits next to my final-year class project on Usine 4.0 at UPSSITECH, which is in progress and is a different piece of work. It was written with AI assistance, as the commit trailers say; the reasoning behind each choice is in [docs/design.md](docs/design.md).
+During my research internship at AIST in Japan I wrote a single-robot A* planner on an occupancy grid ([nav_3dgs_pano](https://github.com/guilhem0908/nav_3dgs_pano)), and I prepared a ROS 2 interface for Kachaka, a mobile robot that docks under a shelf and carries it ([KachakaNavigation](https://github.com/guilhem0908/KachakaNavigation)). One robot on an empty map never meets the first question an Industry 4.0 smart factory (Usine 4.0) asks about a fleet: what happens when a dozen of them share one aisle? This repository is a personal side project in which I write a new grid A* (new code, not the AIST planner), then add time to it, then a reservation table, then Conflict-Based Search, and measure the outcome instead of only animating it. It is a personal project, independent of the final-year class project on Usine 4.0 at UPSSITECH (in progress). It was written with AI assistance, as the commit trailers say; the reasoning behind each choice is in [docs/design.md](docs/design.md).
 
 ## Results
 
 <!-- BEGIN GENERATED: verdict -->
-**In the single corridor the naive manager gridlocked in 180 of 180 one-hour runs with two robots or more, while the reservation manager never gridlocked (0 of 600 runs over the three layouts) and its throughput levelled off at 10 robots (299.7 orders/h, against 303.4 with 16).** The naive manager is not a strawman: it gridlocked in 3 of 200 runs on the open floor and in 95 of 200 in the narrow aisles. Each cell below is 20 seeded runs of one simulated hour; the full grid of ten fleet sizes is in `results/lifelong_summary.csv`.
+**The reservation manager never gridlocked (0 of 600 one-hour runs over the three layouts), and in the single corridor its throughput levelled off at 10 robots (299.7 orders/h, against 303.4 with 16).** The naive manager gridlocked in 180 of 180 corridor runs with two robots or more, but that is structural, not a surprise: a single lane with no passing place deadlocks any manager that lets robots enter from both ends and never backs up, and this one never does. The corridor row shows the size of that effect. The more informative comparison is on the open floor, where the naive manager rarely jams (3 of 200 runs) and the reservation manager still delivers 24% more orders per hour with 16 robots (528.9 against 427.2), and in the narrow aisles, one-cell lanes joined in a network, where the naive manager jams in 95 of 200 runs. A lock that lets one direction at a time into the corridor would be a fairer baseline for that row; this study does not measure one (see Limitations). Each cell below is 20 seeded runs of one simulated hour; the full grid of ten fleet sizes is in `results/lifelong_summary.csv`.
 <!-- END GENERATED: verdict -->
 
 <!-- BEGIN GENERATED: lifelong -->
@@ -30,13 +30,15 @@ During my research internship at AIST in Japan I wrote a single-robot A* planner
 | Open floor | 8 | 414.1 (402-426) | 344.4 (329-357) | 0 / 20 (0%) | 0 / 20 (0%) | 66.8 s | 80.2 s |
 | Open floor | 16 | 528.9 (505-549) | 427.2 (407-444) | 0 / 20 (0%) | 0 / 20 (0%) | 66.7 s | 81.9 s |
 | Narrow aisles | 2 | 224.7 (218-232) | 195.2 (185-204) | 0 / 20 (0%) | 0 / 20 (0%) | 31.9 s | 36.6 s |
-| Narrow aisles | 4 | 410.2 (402-420) | 303.9 (278-323) | 0 / 20 (0%) | 1 / 20 (5%) | 34.9 s | 46.8 s |
-| Narrow aisles | 8 | 653.2 (625-680) | 265.4 (8-427) | 0 / 20 (0%) | 10 / 20 (50%) | 40.7 s | 66.5 s |
-| Narrow aisles | 16 | 776.1 (740-807) | 117.7 (2-445) | 0 / 20 (0%) | 19 / 20 (95%) | 40.6 s | 71.1 s |
-| Single corridor | 2 | 107.2 (104-109) | 3.9 (1-19) | 0 / 20 (0%) | 20 / 20 (100%) | 66.4 s | 63.8 s |
-| Single corridor | 4 | 189.4 (185-196) | 1.2 (0-8) | 0 / 20 (0%) | 20 / 20 (100%) | 75.2 s | 59.2 s |
+| Narrow aisles | 4 | 410.2 (402-420) | 303.9 (278-323) | 0 / 20 (0%) | 1 / 20 (5%) | 34.9 s | 46.8 s\* |
+| Narrow aisles | 8 | 653.2 (625-680) | 265.4 (8-427) | 0 / 20 (0%) | 10 / 20 (50%) | 40.7 s | 66.5 s\* |
+| Narrow aisles | 16 | 776.1 (740-807) | 117.7 (2-445) | 0 / 20 (0%) | 19 / 20 (95%) | 40.6 s | 71.1 s\* |
+| Single corridor | 2 | 107.2 (104-109) | 3.9 (1-19) | 0 / 20 (0%) | 20 / 20 (100%) | 66.4 s | 63.8 s\* |
+| Single corridor | 4 | 189.4 (185-196) | 1.2 (0-8) | 0 / 20 (0%) | 20 / 20 (100%) | 75.2 s | 59.2 s\* |
 | Single corridor | 8 | 283.7 (275-301) | 0.0 (0-0) | 0 / 20 (0%) | 20 / 20 (100%) | 95.6 s | - |
 | Single corridor | 16 | 303.4 (289-318) | 0.0 (0-0) | 0 / 20 (0%) | 20 / 20 (100%) | 101.6 s | - |
+
+\* Order time is the mean over the orders delivered. In a group with gridlocked runs those are the orders delivered before the jam, so a jammed fleet can look fast: in the single corridor with 4 robots, the naive order time is 59.2 s against 75.2 s for reservation, while the naive fleet delivers 1.2 orders/h against 189.4.
 <!-- END GENERATED: lifelong -->
 
 ![Orders delivered per hour and number of gridlocked runs versus fleet size, for the three layouts and the two managers.](docs/throughput.png)
@@ -62,6 +64,8 @@ During my research internship at AIST in Japan I wrote a single-robot A* planner
 | Narrow aisles | 4 | 21 / 25 (84%) | 25 / 25 (100%) | +9.6% on 21 instances | 6.11 ms | 0.62 ms |
 | Narrow aisles | 8 | 5 / 25 (20%) | 17 / 25 (68%) | +4.0% on 5 instances | 944 ms | 2.38 ms |
 | Narrow aisles | 12 | 0 / 25 (0%) | 3 / 25 (12%) | - | 1364 ms | 4.76 ms |
+
+Times are medians over all the instances of a cell, including those where the solver returned no solution. Where CBS solved fewer than half of them (narrow aisles with 8 and 12 agents) its median is mostly the time spent using up the 2,000-node budget, not the time to solve.
 <!-- END GENERATED: oneshot -->
 
 <!-- BEGIN GENERATED: checks -->
@@ -89,7 +93,7 @@ flowchart LR
 - **Floor.** A text map becomes a 4-connected grid: aisles, pick stations, drop stations, chargers. One cell is 1 m and one tick is 1 s. Robots drive on aisles and enter a bay only as the goal of a trip, so a resting robot never blocks a route (a *well-formed* layout).
 - **Space-time A\*.** The single-robot A\* gains a time axis: a state is $`(v, t)`$, waiting is an action, and $`f = (t - t_0) + d(v, \text{goal})`$ with $`d`$ the exact static distance, which is consistent. Ties are broken towards paths that wait in the bay instead of in the aisle.
 - **Reservation manager.** Each robot plans one trip against a table holding every committed path, then writes its own. A vertex conflict is $`\pi_i(t) = \pi_j(t)`$, a swap is $`\pi_i(t) = \pi_j(t+1) \wedge \pi_i(t+1) = \pi_j(t)`$; both are excluded at planning time. The oldest unfinished trip never waits, so the fleet cannot gridlock.
-- **Naive manager.** Each robot follows its own shortest path, yields when the cell ahead is taken, and after a random back-off replans around the robots it sees. Safe, but two robots face to face in a single lane wait for ever.
+- **Naive manager.** Each robot follows its own shortest path, yields when the cell ahead is taken, and after a random back-off replans around the robots it sees. Safe, but it never reverses, so two robots face to face in a single lane wait for ever.
 - **CBS.** For a fixed set of start-goal pairs it minimises $`\sum_i T_i`$ by branching on conflicts; its answers are compared with an exhaustive joint-state search that shares no code with it.
 - **Safety check.** After every tick `safety.check_transition` recounts vertex and swap conflicts from the positions alone. A manager cannot vouch for itself.
 - **Proofs.** Why the heuristic is consistent, why a plan always exists, why the oldest trip never waits and why CBS is optimal: [docs/design.md](docs/design.md).
@@ -154,6 +158,7 @@ docs/              hero.gif, figures, design.md
 - **No batteries, no machines.** Chargers are only parking bays, stations are always ready, handling takes a fixed 2 s.
 - **Saturated demand.** Orders are an endless backlog, which measures capacity, not the waiting time of an order in a queue. Order time runs from assignment to delivery.
 - **Greedy scheduling.** The reservation manager is first come, first served and never re-plans a trip. It is safe and cannot gridlock on a well-formed layout, but it is not optimal; a batching policy would use the corridor better.
+- **No corridor lock.** The naive manager never reverses and a single lane has no passing place, so its corridor result is structural. A lock that admits one direction at a time would probably remove that deadlock; it is not implemented here, so the corridor gap overstates what reservations add over such a lock, and the open floor and the narrow aisles are the fairer comparison.
 - **CBS does not scale here.** It is plain CBS with a node budget, with none of the improvements that make modern solvers fast, and it cannot prove that an instance is unsolvable. It is a reference for small instances only.
 - **Three hand-drawn layouts, fleets up to 16.** The saturation fleet is a lower bound on the two layouts whose curve still rises at 16 robots. One-way aisles, the usual engineering fix, are not studied.
 

@@ -1,8 +1,8 @@
 # Design notes
 
-The reasoning behind every choice in this repository, written so that each one
-can be defended at a whiteboard. Section numbers match the order in which the
-code was built.
+The reasoning behind every choice in this repository, with the argument for
+each one written out. Section numbers match the order in which the code was
+built.
 
 ## 1. The model
 
@@ -52,8 +52,8 @@ closes each state with its optimal cost the first time it pops it.
 
 *Why the effort term exists.* With time as the only cost, "wait three ticks in
 the bay" and "drive up and down the aisle for three ticks" are equally good.
-The first version of the planner returned the second kind of path: robots
-loitered in front of the corridor and got in the way of the trips planned
+A planner with time as its only cost can return the second kind of path:
+robots loiter in front of the corridor and get in the way of the trips planned
 after them. The effort term picks, among the earliest-arrival paths, one that
 waits in its bay. It does not change any arrival time, so the optimality
 arguments of CBS are untouched.
@@ -159,9 +159,20 @@ where the aisles are not the bottleneck.
 
 The rule is **safe** (the moves it grants only enter empty or vacated cells)
 but **not live**: two robots meeting head-on in a single lane wait for ever.
-It is meant as a fair baseline, not a strawman: it has right-of-way,
-platooning, back-off and local replanning, and on the open floor it almost
-never gridlocks (the counts are in the README table).
+It is a baseline for what a fleet does with no shared plan, and it is not
+tuned to lose: it has right-of-way, platooning (a robot may follow into a cell
+that is being vacated), back-off and local replanning, and on the open floor
+it rarely gridlocks (the counts are in the README table). It never reverses
+and never uses a bay as a passing place, and that decides the single corridor
+by construction: a single lane with no passing place deadlocks any policy that
+lets two robots enter from opposite ends and never backs up
+(`test_naive_robots_block_each_other_head_on_in_a_single_lane`). The corridor
+row of the README therefore measures how large that effect is, not whether it
+exists; the open floor and the narrow aisles, where a blocked robot can route
+around, are the informative comparison between the two managers. A fairer
+corridor baseline would add a lock that admits one direction at a time. It is
+not implemented, so the corridor gap overstates what reservations add over such
+a lock, by an amount this repository does not measure.
 
 **Gridlock.** A run is gridlocked when no robot changes cell for 60
 consecutive ticks while at least one robot has a trip. For the naive manager
@@ -237,7 +248,7 @@ off the goal" rule would undercount and would make CBS look wrong;
   tuples. CI reruns a subset on Linux and compares it row by row with the
   tables committed from Windows.
 
-## 10. Questions worth being ready for
+## 10. Design questions
 
 - *Deadlock or livelock?* The naive failure in the corridor is a deadlock: a
   cycle of robots each waiting for a cell held by the next. The 60-tick
@@ -248,6 +259,10 @@ off the goal" rule would undercount and would make CBS look wrong;
   localisation error, delays that break the reserved timing (robust execution
   needs a temporal network or replanning), batteries, and communication.
   None of that is modelled here.
+- *Would a lock on the corridor fix the naive manager?* Very likely for the
+  head-on deadlock in the lane, which is why the corridor row is not a fair
+  fight (section 6). It would not change the open floor or the narrow aisles,
+  and it is not measured here.
 - *Why not one-way aisles?* They are the standard engineering fix and would
   make the naive manager far safer. They are a layout change, not a planner,
   and are left as an obvious follow-up experiment.

@@ -24,6 +24,7 @@ from amr_traffic_lab.experiments import (
     HERO_ROBOTS,
     HERO_SECONDS,
     HERO_SEED,
+    ONESHOT_NODE_BUDGET,
     SATURATION_SHARE,
     best_fleet,
     saturation_fleet,
@@ -37,6 +38,8 @@ HERO = ROOT / "docs" / "hero.gif"
 
 TABLE_FLEETS = (2, 4, 8, 16)
 TABLE_AGENTS = (4, 8, 12)
+EXAMPLE_LAYOUT = "single_corridor"
+EXAMPLE_FLEET = 4
 LARGEST_FLEET = 16
 HERO_MAX_BYTES = 3_000_000
 HERO_MAX_WIDTH = 900
@@ -121,16 +124,30 @@ def verdict_block(summary: list[dict]) -> str:
     floor = gridlocks(summary, "open_floor", "naive")
     knee = saturation_fleet(summary, "single_corridor", "reservation")
     largest = pick(summary, "single_corridor", "reservation", LARGEST_FLEET)
+    floor_reserved = pick(summary, "open_floor", "reservation", LARGEST_FLEET)
+    floor_naive = pick(summary, "open_floor", "naive", LARGEST_FLEET)
+    gain = 100 * (
+        float(floor_reserved["throughput_mean"]) / float(floor_naive["throughput_mean"]) - 1
+    )
     seeds = summary[0]["runs"]
     return (
-        f"**In the single corridor the naive manager gridlocked in {corridor[0]} of "
-        f"{corridor[1]} one-hour runs with two robots or more, while the reservation manager "
-        f"never gridlocked ({reserved[0]} of {reserved[1]} runs over the three layouts) and its "
-        f"throughput levelled off at {fleet(knee['robots'])} ({knee['throughput_mean']} "
-        f"orders/h, against {largest['throughput_mean']} with {LARGEST_FLEET}).** The naive "
-        f"manager is not a strawman: it gridlocked in {floor[0]} of {floor[1]} runs on the open "
-        f"floor and in {aisles[0]} of {aisles[1]} in the narrow aisles. Each cell below is "
-        f"{seeds} seeded runs of one simulated hour; the full grid of ten fleet sizes is in "
+        f"**The reservation manager never gridlocked ({reserved[0]} of {reserved[1]} one-hour "
+        f"runs over the three layouts), and in the single corridor its throughput levelled off "
+        f"at {fleet(knee['robots'])} ({knee['throughput_mean']} orders/h, against "
+        f"{largest['throughput_mean']} with {LARGEST_FLEET}).** The naive manager gridlocked in "
+        f"{corridor[0]} of {corridor[1]} corridor runs with two robots or more, but that is "
+        f"structural, not a surprise: a single lane with no passing place deadlocks any manager "
+        f"that lets robots enter from both ends and never backs up, and this one never does. The "
+        f"corridor row shows the size of that effect. The more informative comparison is on the "
+        f"open floor, where the naive manager rarely jams ({floor[0]} of {floor[1]} runs) and "
+        f"the reservation manager still delivers {gain:.0f}% more orders per hour with "
+        f"{LARGEST_FLEET} robots ({floor_reserved['throughput_mean']} against "
+        f"{floor_naive['throughput_mean']}), and in the narrow aisles, one-cell lanes joined in "
+        f"a network, where the naive manager jams in {aisles[0]} of {aisles[1]} runs. A lock "
+        f"that lets one direction at a time into the corridor would be a fairer baseline for "
+        f"that row; "
+        f"this study does not measure one (see Limitations). Each cell below is {seeds} seeded "
+        f"runs of one simulated hour; the full grid of ten fleet sizes is in "
         f"`results/lifelong_summary.csv`."
     )
 
@@ -151,8 +168,20 @@ def lifelong_block(summary: list[dict]) -> str:
             cells += [share(int(row["gridlocked_runs"]), int(row["runs"])) for row in rows]
             for row in rows:
                 delivered = int(row["delivered"])
-                cells.append(f"{row['order_time_mean_s']} s" if delivered else NO_VALUE)
+                jammed = "\\*" if int(row["gridlocked_runs"]) else ""
+                cells.append(f"{row['order_time_mean_s']} s{jammed}" if delivered else NO_VALUE)
             lines.append("| " + " | ".join(cells) + " |")
+    example = [pick(summary, EXAMPLE_LAYOUT, m, EXAMPLE_FLEET) for m in ("reservation", "naive")]
+    lines += [
+        "",
+        "\\* Order time is the mean over the orders delivered. In a group with gridlocked runs "
+        "those are the orders delivered before the jam, so a jammed fleet can look fast: "
+        f"in the {LAYOUT_TITLE[EXAMPLE_LAYOUT].lower()} with {fleet(EXAMPLE_FLEET)}, the naive "
+        "order "
+        f"time is {example[1]['order_time_mean_s']} s against "
+        f"{example[0]['order_time_mean_s']} s for reservation, while the naive fleet delivers "
+        f"{example[1]['throughput_mean']} orders/h against {example[0]['throughput_mean']}.",
+    ]
     return "\n".join(lines)
 
 
@@ -192,6 +221,7 @@ def oneshot_block(summary: list[dict], seconds: list[dict]) -> str:
         "|:--|--:|--:|--:|--:|--:|--:|",
     ]
     timing = {(r["layout"], int(r["agents"])): r for r in seconds}
+    out_of_budget: dict[str, list[str]] = {}
     for row in summary:
         agents = int(row["agents"])
         if agents not in TABLE_AGENTS:
@@ -203,6 +233,8 @@ def oneshot_block(summary: list[dict], seconds: list[dict]) -> str:
         else:
             overhead = NO_VALUE
         clock = timing[(row["layout"], agents)]
+        if 2 * int(row["cbs_solved"]) < total:
+            out_of_budget.setdefault(LAYOUT_TITLE[row["layout"]].lower(), []).append(str(agents))
         lines.append(
             f"| {LAYOUT_TITLE[row['layout']]} | {agents} "
             f"| {share(int(row['cbs_solved']), total)} "
@@ -211,7 +243,21 @@ def oneshot_block(summary: list[dict], seconds: list[dict]) -> str:
             f"| {milliseconds(clock['cbs_median_ms'])} "
             f"| {milliseconds(clock['prioritised_median_ms'])} |"
         )
-    return "\n".join(lines)
+    note = (
+        "Times are medians over all the instances of a cell, including those where the solver "
+        "returned no solution."
+    )
+    if out_of_budget:
+        where = " and ".join(
+            f"{layout} with {' and '.join(counts)} agents"
+            for layout, counts in out_of_budget.items()
+        )
+        note += (
+            f" Where CBS solved fewer than half of them ({where}) its "
+            f"median is mostly the time spent using up the {ONESHOT_NODE_BUDGET:,}-node budget, "
+            "not the time to solve."
+        )
+    return "\n".join([*lines, "", note])
 
 
 def checks_block(runs: list[dict], oneshot: list[dict], cross: dict, timings: dict) -> str:
